@@ -1,0 +1,60 @@
+name: Main Workflow
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      # Prevent infinite loops
+      - '.github/workflows/ai.yml'
+      - '.github/workflows/sim.yml'
+      - '.github/workflows/ui.yml'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  trigger-workflows:
+    runs-on: ubuntu-latest
+    steps:
+
+    # Fetch all history so that we can do a proper diff
+    
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    # Triple-dot will get changes introduced by the branch
+    
+    - name: Check changed files over the entire PR
+      id: getfiles
+      run: |
+        BRANCH_NAME=${GITHUB_REF#refs/heads/}
+        git fetch origin $BRANCH_NAME
+        files=$(git diff --name-only origin/main...$BRANCH_NAME)
+        echo "::set-output name=changed::$files"
+
+    - name: Trigger other workflows
+      run: |
+        changed_files="${{ steps.getfiles.outputs.changed }}"
+        echo "Changed files: $changed_files"
+
+        # Depending on the changed file, trigger the respective workflow
+        if [[ $changed_files == *ai/"* ]]; then
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yml/dispatches" \
+          -d "{\"ref\":\"${{ github.ref }}\"}"
+        fi
+
+        if [[ $changed_files == *sim/"* ]]; then
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yml/dispatches" \
+          -d "{\"ref\":\"${{ github.ref }}\"}"
+        fi
+
+        if [[ $changed_files == *ui/"* ]]; then
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yml/dispatches" \
+          -d "{\"ref\":\"${{ github.ref }}\"}"
+        fi

@@ -1,16 +1,23 @@
 name: ci-sim
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git reference'
+        required: true
+        default: 'main'
 
 jobs:
   run-sim:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Echo
+      with:
+        ref: ${{ github.event.inputs.ref }}
+
+    - name: Run SIM related tasks
       run: |
-        echo "Executing steps for changes in sim"
+        echo "Running SIM tasks..."
