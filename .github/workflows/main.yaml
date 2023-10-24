@@ -23,16 +23,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
+        ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
 
-    # Triple-dot will get changes introduced by the branch
-    
+    - name: Fetch all branches
+      run: |
+        git fetch origin
+
     - name: Check changed files over the entire PR
       id: getfiles
       run: |
         BRANCH_NAME=${GITHUB_REF#refs/heads/}
-        git fetch origin $BRANCH_NAME
-        files=$(git diff --name-only origin/main...$BRANCH_NAME)
+        BASE_NAME=${{ github.base_ref }}
+        if [ -z "$BASE_NAME" ]; then
+          BASE_NAME="main"
+        fi
+        files=$(git diff --name-only origin/$BASE_NAME...$BRANCH_NAME)
         echo "::set-output name=changed::$files"
 
     - name: Trigger other workflows
