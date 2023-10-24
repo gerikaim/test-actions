@@ -80,8 +80,17 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.check_changes.outputs.ai-changed == 'true'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Execute steps for ai
         run: echo "AI related patterns matched."
+
+      - name: Execute steps for ai
+        run: |
+          python ai/main.py
 
   run-ui:
     needs: check_changes
