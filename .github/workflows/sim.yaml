@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  run-job:
+  run-sim:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
