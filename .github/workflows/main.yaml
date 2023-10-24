@@ -33,11 +33,13 @@ jobs:
       id: getfiles
       run: |
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # For pull requests, compare against the base ref of the PR
-            files=$(git diff --name-only origin/${{ github.base_ref }}...origin/${{ github.head_ref }})
+          echo "Comparing for PR"
+          # For pull requests, compare against the base ref of the PR
+          files=$(git diff --name-only origin/${{ github.base_ref }}...origin/${{ github.head_ref }})
         else
-            # For regular pushes, compare against the previous commit
-            files=$(git diff --name-only HEAD^ HEAD)
+          echo "Comparing for Push"
+          # For regular pushes, compare against the previous commit
+          files=$(git diff --name-only HEAD^ HEAD)
         fi
         echo "::set-output name=changed::$files"
         
