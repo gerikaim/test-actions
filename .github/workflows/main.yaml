@@ -33,7 +33,7 @@ jobs:
         fi
     
         # AI directories
-        AI_DIRS=("ai/" "ai-utils/" "ai-lib/")
+        AI_DIRS=("ai/")
         AI_CHANGED="false"
         for dir in "${AI_DIRS[@]}"; do
           git diff --quiet $base_ref $head_ref -- $dir
@@ -44,7 +44,7 @@ jobs:
         done
     
         # UI directories
-        UI_DIRS=("ui/" "ui-components/" "ui-lib/")
+        UI_DIRS=("ui/")
         UI_CHANGED="false"
         for dir in "${UI_DIRS[@]}"; do
           git diff --quiet $base_ref $head_ref -- $dir
@@ -55,7 +55,7 @@ jobs:
         done
     
         # SIM directories
-        SIM_DIRS=("sim/" "sim-utils/" "sim-lib/")
+        SIM_DIRS=("sim/")
         SIM_CHANGED="false"
         for dir in "${SIM_DIRS[@]}"; do
           git diff --quiet $base_ref $head_ref -- $dir
