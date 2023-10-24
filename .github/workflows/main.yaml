@@ -21,26 +21,23 @@ jobs:
     # Fetch all history so that we can do a proper diff
     
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
 
-    - name: Fetch all branches
-      run: |
-        git fetch origin
-
     - name: Check changed files over the entire PR
       id: getfiles
       run: |
-        BRANCH_NAME=${GITHUB_REF#refs/heads/}
-        BASE_NAME=${{ github.base_ref }}
-        if [ -z "$BASE_NAME" ]; then
-          BASE_NAME="main"
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          # For pull requests, compare against the base ref of the PR
+          files=$(git diff --name-only ${{ github.base_ref }}...${{ github.head_ref }})
+        else
+          # For regular pushes, compare against the previous commit
+          files=$(git diff --name-only HEAD^ HEAD)
         fi
-        files=$(git diff --name-only origin/$BASE_NAME...$BRANCH_NAME)
         echo "::set-output name=changed::$files"
-
+        
     - name: Trigger other workflows
       run: |
         changed_files="${{ steps.getfiles.outputs.changed }}"
