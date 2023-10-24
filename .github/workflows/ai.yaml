@@ -21,3 +21,4 @@ jobs:
     - name: Run AI related tasks
       run: |
         echo "Running AI tasks..."
+        python ai/main.py
