@@ -24,11 +24,15 @@ jobs:
         id: check_changes_step
         run: |
           # Define regex patterns for each type (Modify these patterns as per your needs)
-          AI_REGEXES=("^ai/.*")
-          UI_REGEXES=("^ui/.*")
-          SIM_REGEXES=("^sim/.*")
+          AI_REGEXES=("^ai/.*" \
+                      "^shared/.*")
+          UI_REGEXES=("^ui/.*" \
+                      "^shared/.*")
+          SIM_REGEXES=("^sim/.*"\
+                       "^shared/.*")
 
-          files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+
           AI_CHANGED="false"
           UI_CHANGED="false"
           SIM_CHANGED="false"
