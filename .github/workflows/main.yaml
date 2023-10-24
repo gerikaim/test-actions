@@ -23,7 +23,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
 
     - name: Check changed files over the entire PR
