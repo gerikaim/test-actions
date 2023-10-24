@@ -4,22 +4,14 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      # Prevent infinite loops
-      - '.github/workflows/ai.yaml'
-      - '.github/workflows/sim.yaml'
-      - '.github/workflows/ui.yaml'
   pull_request:
     branches:
       - main
 
 jobs:
-  trigger-workflows:
+  check_changes:
     runs-on: ubuntu-latest
     steps:
-
-    # Fetch all history so that we can do a proper diff
-    
     - name: Checkout code
       uses: actions/checkout@v3
       with:
@@ -29,49 +21,72 @@ jobs:
       run: |
         git fetch origin +refs/heads/*:refs/remotes/origin/* +refs/pull/*:refs/pull/*
 
-    - name: Check changed files over the entire PR
-      id: getfiles
+    - name: Determine Changed Files
+      id: filter
       run: |
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          echo "Comparing for PR"
-          # For pull requests, compare against the base ref of the PR
-          files=$(git diff --name-only origin/${{ github.base_ref }}...origin/${{ github.head_ref }} | tr '\n' ',')
+          base_ref="origin/${{ github.base_ref }}"
+          head_ref="origin/${{ github.head_ref }}"
         else
-          echo "Comparing for Push"
-          # For regular pushes, compare against the previous commit
-          files=$(git diff --name-only HEAD^ HEAD | tr '\n' ',')
+          base_ref="HEAD^"
+          head_ref="HEAD"
         fi
-        echo "CHANGED=$files" >> $GITHUB_ENV
-        
-    - name: Trigger other workflows
+    
+        # AI directories
+        AI_DIRS=("ai/" "ai-utils/" "ai-lib/")
+        AI_CHANGED="false"
+        for dir in "${AI_DIRS[@]}"; do
+          git diff --quiet $base_ref $head_ref -- $dir
+          if [ $? -eq 1 ]; then
+            AI_CHANGED="true"
+            break
+          fi
+        done
+    
+        # UI directories
+        UI_DIRS=("ui/" "ui-components/" "ui-lib/")
+        UI_CHANGED="false"
+        for dir in "${UI_DIRS[@]}"; do
+          git diff --quiet $base_ref $head_ref -- $dir
+          if [ $? -eq 1 ]; then
+            UI_CHANGED="true"
+            break
+          fi
+        done
+    
+        # SIM directories
+        SIM_DIRS=("sim/" "sim-utils/" "sim-lib/")
+        SIM_CHANGED="false"
+        for dir in "${SIM_DIRS[@]}"; do
+          git diff --quiet $base_ref $head_ref -- $dir
+          if [ $? -eq 1 ]; then
+            SIM_CHANGED="true"
+            break
+          fi
+        done
+    
+        # Outputting to GitHub environment
+        echo "AI_CHANGED=$AI_CHANGED" >> $GITHUB_ENV
+        echo "UI_CHANGED=$UI_CHANGED" >> $GITHUB_ENV
+        echo "SIM_CHANGED=$SIM_CHANGED" >> $GITHUB_ENV
+
+    - name: Trigger AI Workflow
+      if: env.AI_CHANGED == 'true'
       run: |
-        changed_files="$CHANGED"
-        echo "Changed files: $changed_files"
+        curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
+        "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yaml/dispatches" \
+        -d "{\"ref\":\"${{ github.ref }}\"}"
 
-        ref_name="${{ github.ref }}"
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          ref_name="${{ github.head_ref }}"
-        fi
+    - name: Trigger UI Workflow
+      if: env.UI_CHANGED == 'true'
+      run: |
+        curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
+        "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yaml/dispatches" \
+        -d "{\"ref\":\"${{ github.ref }}\"}"
 
-        # Depending on the changed file, trigger the respective workflow
-        
-        if [[ $changed_files == *"ai/"* ]]; then
-          echo "AI files changed. Triggering AI workflow."
-          curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yaml/dispatches" \
-          -d "{\"ref\":\"$ref_name\"}"
-        fi
-
-        if [[ $changed_files == *"ui/"* ]]; then
-          echo "UI files changed. Triggering UI workflow."
-          curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yaml/dispatches" \
-          -d "{\"ref\":\"$ref_name\"}"
-        fi
-
-        if [[ $changed_files == *"sim/"* ]]; then
-          echo "SIM files changed. Triggering SIM workflow."
-          curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yaml/dispatches" \
-          -d "{\"ref\":\"$ref_name\"}"
-        fi
+    - name: Trigger SIM Workflow
+      if: env.SIM_CHANGED == 'true'
+      run: |
+        curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
+        "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yaml/dispatches" \
+        -d "{\"ref\":\"${{ github.ref }}\"}"
