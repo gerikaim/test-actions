@@ -25,6 +25,10 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Fetch all branches and PR refs
+      run: |
+        git fetch origin +refs/heads/*:refs/remotes/origin/* +refs/pull/*:refs/pull/*
+
     - name: Check changed files over the entire PR
       id: getfiles
       run: |
