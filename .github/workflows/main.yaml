@@ -6,9 +6,9 @@ on:
       - main
     paths-ignore:
       # Prevent infinite loops
-      - '.github/workflows/ai.yml'
-      - '.github/workflows/sim.yml'
-      - '.github/workflows/ui.yml'
+      - '.github/workflows/ai.yaml'
+      - '.github/workflows/sim.yaml'
+      - '.github/workflows/ui.yaml'
   pull_request:
     branches:
       - main
@@ -53,20 +53,20 @@ jobs:
         if [[ $changed_files == *"ai/"* ]]; then
           echo "AI files changed. Triggering AI workflow."
           curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yml/dispatches" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yaml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
         fi
 
         if [[ $changed_files == *"sim/"* ]]; then
           echo "SIM files changed. Triggering SIM workflow."
           curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yml/dispatches" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yaml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
         fi
 
         if [[ $changed_files == *"ui/"* ]]; then
           echo "UI files changed. Triggering UI workflow."
           curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yml/dispatches" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yaml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
         fi
