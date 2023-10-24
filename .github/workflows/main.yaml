@@ -47,19 +47,19 @@ jobs:
         echo "Changed files: $changed_files"
 
         # Depending on the changed file, trigger the respective workflow
-        if [[ $changed_files == *ai/"* ]]; then
+        if [[ $changed_files == *"ai/"* ]]; then
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
         fi
 
-        if [[ $changed_files == *sim/"* ]]; then
+        if [[ $changed_files == *"sim/"* ]]; then
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
         fi
 
-        if [[ $changed_files == *ui/"* ]]; then
+        if [[ $changed_files == *"ui/"* ]]; then
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
