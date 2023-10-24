@@ -58,20 +58,20 @@ jobs:
         if [[ $changed_files == *"ai/"* ]]; then
           echo "AI files changed. Triggering AI workflow."
           curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yml/dispatches" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yaml/dispatches" \
           -d "{\"ref\":\"$ref_name\"}"
         fi
 
         if [[ $changed_files == *"ui/"* ]]; then
           echo "UI files changed. Triggering UI workflow."
           curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yml/dispatches" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yaml/dispatches" \
           -d "{\"ref\":\"$ref_name\"}"
         fi
 
         if [[ $changed_files == *"sim/"* ]]; then
           echo "SIM files changed. Triggering SIM workflow."
           curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yml/dispatches" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yaml/dispatches" \
           -d "{\"ref\":\"$ref_name\"}"
         fi
