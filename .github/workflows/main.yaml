@@ -46,6 +46,11 @@ jobs:
         UI_DIRS=("ui/")
         SIM_DIRS=("sim/")
 
+        ref_name="${{ github.ref }}"
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          ref_name="${{ github.head_ref }}"
+        fi
+    
         trigger_workflow() {
           dir_array=("$@")
           for dir in "${dir_array[@]}"; do
@@ -53,7 +58,7 @@ jobs:
               echo "Files in $dir changed. Triggering ${dir%/*} workflow."
               curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
               "https://api.github.com/repos/${{ github.repository }}/actions/workflows/${dir%/*}.yaml/dispatches" \
-              -d "{\"ref\":\"${{ github.ref }}\"}"
+              -d "{\"ref\":\"$ref_name\"}"
               break
             fi
           done
