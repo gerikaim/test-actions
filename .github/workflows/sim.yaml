@@ -1,5 +1,10 @@
 name: ci-sim
 
+on:
+  pull_request:
+    branches:
+      - main
+
 jobs:
   run-job:
     runs-on: ubuntu-latest

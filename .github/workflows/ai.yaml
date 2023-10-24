@@ -1,5 +1,10 @@
 name: ci-ai
 
+on:
+  pull_request:
+    branches:
+      - main
+
 jobs:
   run-job:
     runs-on: ubuntu-latest
