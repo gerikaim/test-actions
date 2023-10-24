@@ -41,30 +41,29 @@ jobs:
           # For regular pushes, compare against the previous commit
           files=$(git diff --name-only HEAD^ HEAD)
         fi
-        echo "changed=$files" >> $GITHUB_ENV
-
+        echo "CHANGED=$files" >> $GITHUB_ENV
         
     - name: Trigger other workflows
       run: |
         changed_files="$CHANGED"
         echo "Changed files: $changed_files"
-  
+
         # Depending on the changed file, trigger the respective workflow
-        
+
         if [[ $changed_files == *"ai/"* ]]; then
           echo "AI files changed. Triggering AI workflow."
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
         fi
-  
+
         if [[ $changed_files == *"sim/"* ]]; then
           echo "SIM files changed. Triggering SIM workflow."
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yml/dispatches" \
           -d "{\"ref\":\"${{ github.ref }}\"}"
         fi
-  
+
         if [[ $changed_files == *"ui/"* ]]; then
           echo "UI files changed. Triggering UI workflow."
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
