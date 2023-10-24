@@ -9,27 +9,33 @@ jobs:
   check_changes:
     runs-on: ubuntu-latest
 
+    outputs:
+      ai-changed: ${{ steps.check_changes_step.outputs.AI_CHANGED }}
+      ui-changed: ${{ steps.check_changes_step.outputs.UI_CHANGED }}
+      sim-changed: ${{ steps.check_changes_step.outputs.SIM_CHANGED }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Check directory changes and match regex
+        id: check_changes_step
         run: |
           # Define regex patterns for each type (Modify these patterns as per your needs)
           AI_REGEXES=("^ai/.*")
           UI_REGEXES=("^ui/.*")
           SIM_REGEXES=("^sim/.*")
-      
+
           files=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
           AI_CHANGED="false"
           UI_CHANGED="false"
           SIM_CHANGED="false"
-      
+
           # Print changed files
           echo "Changed files:"
           echo "$files"
           echo "-------------------------"
-      
+
           for file in $files; do
             # Check against AI regex patterns
             for regex in "${AI_REGEXES[@]}"; do
@@ -39,7 +45,7 @@ jobs:
                 break
               fi
             done
-            
+          
             # Check against UI regex patterns
             for regex in "${UI_REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
@@ -48,7 +54,7 @@ jobs:
                 break
               fi
             done
-            
+          
             # Check against SIM regex patterns
             for regex in "${SIM_REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
@@ -58,15 +64,15 @@ jobs:
               fi
             done
           done
-      
-          echo "AI_CHANGED=$AI_CHANGED" >> $GITHUB_ENV
-          echo "UI_CHANGED=$UI_CHANGED" >> $GITHUB_ENV
-          echo "SIM_CHANGED=$SIM_CHANGED" >> $GITHUB_ENV
+
+          echo "::set-output name=AI_CHANGED::$AI_CHANGED"
+          echo "::set-output name=UI_CHANGED::$UI_CHANGED"
+          echo "::set-output name=SIM_CHANGED::$SIM_CHANGED"
 
   run-ai:
     needs: check_changes
     runs-on: ubuntu-latest
-    if: env.AI_CHANGED == 'true'
+    if: needs.check_changes.outputs.ai-changed == 'true'
     steps:
       - name: Execute steps for ai
         run: echo "AI related patterns matched."
@@ -74,7 +80,7 @@ jobs:
   run-ui:
     needs: check_changes
     runs-on: ubuntu-latest
-    if: env.UI_CHANGED == 'true'
+    if: needs.check_changes.outputs.ui-changed == 'true'
     steps:
       - name: Execute steps for ui
         run: echo "UI related patterns matched."
@@ -82,7 +88,7 @@ jobs:
   run-sim:
     needs: check_changes
     runs-on: ubuntu-latest
-    if: env.SIM_CHANGED == 'true'
+    if: needs.check_changes.outputs.sim-changed == 'true'
     steps:
       - name: Execute steps for sim
         run: echo "SIM related patterns matched."
