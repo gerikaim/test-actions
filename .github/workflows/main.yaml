@@ -78,6 +78,14 @@ jobs:
   run-ai:
     needs: check_changes
     runs-on: ubuntu-latest
+    if: needs.check_changes.outputs.ai-changed != 'true'
+    steps:
+      - name: Execute steps for ai
+        run: echo "AI alt step."
+
+  run-ai:
+    needs: check_changes
+    runs-on: ubuntu-latest
     if: needs.check_changes.outputs.ai-changed == 'true'
     steps:
       - name: Checkout repository
@@ -95,10 +103,26 @@ jobs:
   run-ui:
     needs: check_changes
     runs-on: ubuntu-latest
+    if: needs.check_changes.outputs.ui-changed != 'true'
+    steps:
+      - name: Execute steps for ui
+        run: echo "UI alt step."
+
+  run-ui:
+    needs: check_changes
+    runs-on: ubuntu-latest
     if: needs.check_changes.outputs.ui-changed == 'true'
     steps:
       - name: Execute steps for ui
         run: echo "UI related patterns matched."
+
+  run-sim:
+    needs: check_changes
+    runs-on: ubuntu-latest
+    if: needs.check_changes.outputs.sim-changed != 'true'
+    steps:
+      - name: Execute steps for sim
+        run: echo "SIM alt step."
 
   run-sim:
     needs: check_changes
