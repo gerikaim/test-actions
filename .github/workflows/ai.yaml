@@ -1,16 +1,24 @@
 name: ci-ai
 
 on:
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git reference'
+        required: true
+        default: 'main'
 
 jobs:
   run-ai:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-    - name: Echo
+      with:
+        ref: ${{ github.event.inputs.ref }}
+
+    - name: Run AI related tasks
       run: |
-        echo "Executing steps for changes in ai"
+        echo "Running AI tasks..."
+        python ai/main.py
