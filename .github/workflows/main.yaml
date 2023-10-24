@@ -4,14 +4,20 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      # Prevent infinite loops
+      - '.github/workflows/ai.yaml'
+      - '.github/workflows/sim.yaml'
+      - '.github/workflows/ui.yaml'
   pull_request:
     branches:
       - main
 
 jobs:
-  check_changes:
+  trigger-workflows:
     runs-on: ubuntu-latest
     steps:
+    # Fetch all history so that we can do a proper diff
     - name: Checkout code
       uses: actions/checkout@v3
       with:
@@ -21,72 +27,38 @@ jobs:
       run: |
         git fetch origin +refs/heads/*:refs/remotes/origin/* +refs/pull/*:refs/pull/*
 
-    - name: Determine Changed Files
-      id: filter
+    - name: Check changed files over the entire PR
       run: |
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          base_ref="origin/${{ github.base_ref }}"
-          head_ref="origin/${{ github.head_ref }}"
+          echo "Comparing for PR"
+          # For pull requests, compare against the base ref of the PR
+          files=$(git diff --name-only origin/${{ github.base_ref }}...origin/${{ github.head_ref }})
         else
-          base_ref="HEAD^"
-          head_ref="HEAD"
+          echo "Comparing for Push"
+          # For regular pushes, compare against the previous commit
+          files=$(git diff --name-only HEAD^ HEAD)
         fi
-    
-        # AI directories
+        echo "CHANGED_FILES=$files" >> $GITHUB_ENV
+
+    - name: Trigger other workflows
+      run: |
         AI_DIRS=("ai/")
-        AI_CHANGED="false"
-        for dir in "${AI_DIRS[@]}"; do
-          git diff --quiet $base_ref $head_ref -- $dir
-          if [ $? -eq 1 ]; then
-            AI_CHANGED="true"
-            break
-          fi
-        done
-    
-        # UI directories
         UI_DIRS=("ui/")
-        UI_CHANGED="false"
-        for dir in "${UI_DIRS[@]}"; do
-          git diff --quiet $base_ref $head_ref -- $dir
-          if [ $? -eq 1 ]; then
-            UI_CHANGED="true"
-            break
-          fi
-        done
-    
-        # SIM directories
         SIM_DIRS=("sim/")
-        SIM_CHANGED="false"
-        for dir in "${SIM_DIRS[@]}"; do
-          git diff --quiet $base_ref $head_ref -- $dir
-          if [ $? -eq 1 ]; then
-            SIM_CHANGED="true"
-            break
-          fi
-        done
-    
-        # Outputting to GitHub environment
-        echo "AI_CHANGED=$AI_CHANGED" >> $GITHUB_ENV
-        echo "UI_CHANGED=$UI_CHANGED" >> $GITHUB_ENV
-        echo "SIM_CHANGED=$SIM_CHANGED" >> $GITHUB_ENV
 
-    - name: Trigger AI Workflow
-      if: env.AI_CHANGED == 'true'
-      run: |
-        curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-        "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ai.yaml/dispatches" \
-        -d "{\"ref\":\"${{ github.ref }}\"}"
+        trigger_workflow() {
+          dir_array=("$@")
+          for dir in "${dir_array[@]}"; do
+            if [[ $CHANGED_FILES == *"$dir"* ]]; then
+              echo "Files in $dir changed. Triggering ${dir%/*} workflow."
+              curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/${dir%/*}.yaml/dispatches" \
+              -d "{\"ref\":\"${{ github.ref }}\"}"
+              break
+            fi
+          done
+        }
 
-    - name: Trigger UI Workflow
-      if: env.UI_CHANGED == 'true'
-      run: |
-        curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-        "https://api.github.com/repos/${{ github.repository }}/actions/workflows/ui.yaml/dispatches" \
-        -d "{\"ref\":\"${{ github.ref }}\"}"
-
-    - name: Trigger SIM Workflow
-      if: env.SIM_CHANGED == 'true'
-      run: |
-        curl -X POST -H "Authorization: token ${{ secrets.MY_PAT }}" \
-        "https://api.github.com/repos/${{ github.repository }}/actions/workflows/sim.yaml/dispatches" \
-        -d "{\"ref\":\"${{ github.ref }}\"}"
+        trigger_workflow "${AI_DIRS[@]}"
+        trigger_workflow "${UI_DIRS[@]}"
+        trigger_workflow "${SIM_DIRS[@]}"
