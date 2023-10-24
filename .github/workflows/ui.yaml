@@ -1,4 +1,4 @@
-name: ci-ai
+name: ci-ui
 
 on:
   pull_request:
