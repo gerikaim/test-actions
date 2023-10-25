@@ -84,10 +84,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Execute steps for ai
+      - name: Execute steps for AI
         run: echo "AI related patterns matched."
 
-      - name: Execute steps for ai
+      - name: Run AI program
         run: |
           python ai/main.py
 
@@ -96,8 +96,12 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.check_changes.outputs.ui-changed == 'true'
     steps:
-      - name: Execute steps for ui
+      - name: Execute steps for UI
         run: echo "UI related patterns matched."
+
+      - name: Run UI Program
+        run: |
+          python ui/main.py
 
   run-sim:
     needs: check_changes
