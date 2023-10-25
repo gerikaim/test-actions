@@ -10,9 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      ai-changed: ${{ steps.check_changes_step.outputs.AI_CHANGED }}
-      ui-changed: ${{ steps.check_changes_step.outputs.UI_CHANGED }}
-      sim-changed: ${{ steps.check_changes_step.outputs.SIM_CHANGED }}
+      ai-changed: ${{ env.AI_CHANGED }}
+      ui-changed: ${{ env.UI_CHANGED }}
+      sim-changed: ${{ env.SIM_CHANGED }}
 
     steps:
       - name: Checkout repository
@@ -70,10 +70,9 @@ jobs:
               fi
             done
           done
-
-          echo "::set-output name=AI_CHANGED::$AI_CHANGED"
-          echo "::set-output name=UI_CHANGED::$UI_CHANGED"
-          echo "::set-output name=SIM_CHANGED::$SIM_CHANGED"
+          echo "AI_CHANGED=$AI_CHANGED" >> $GITHUB_ENV
+          echo "UI_CHANGED=$UI_CHANGED" >> $GITHUB_ENV
+          echo "SIM_CHANGED=$SIM_CHANGED" >> $GITHUB_ENV
 
   run-ai:
     needs: check_changes
