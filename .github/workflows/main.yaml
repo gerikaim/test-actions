@@ -22,12 +22,11 @@ jobs:
 
       - name: Check directory changes using Python script
         run: |
-
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            $BASE_BRANCH=${{ github.event.pull_request.base.sha }}
+            BASE_BRANCH=${{ github.event.pull_request.base.sha }}
           else
             # git fetch origin main:main
-            $BASE_BRANCH=main
+            BASE_BRANCH=main
           fi
 
           python check_directory_changes.py "$BASE_BRANCH" ${{ github.sha }} > changes.txt
