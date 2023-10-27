@@ -20,59 +20,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check directory changes and match regex
-        id: check_changes_step
+      - name: Check directory changes using Python script
         run: |
-          # Define regex patterns for each type (Modify these patterns as per your needs)
-          AI_REGEXES=("^ai/.*" \
-                      "^shared/.*")
-          UI_REGEXES=("^ui/.*" \
-                      "^shared/.*")
-          SIM_REGEXES=("^sim/.*"\
-                       "^shared/.*")
 
-          AI_CHANGED="false"
-          UI_CHANGED="false"
-          SIM_CHANGED="false"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            $BASE_BRANCH=${{ github.event.pull_request.base.sha }}
+          else
+            # git fetch origin main:main
+            $BASE_BRANCH=main
+          fi
 
-          files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-
-          # Print changed files
-          echo "Changed files:"
-          echo "$files"
-          echo "-------------------------"
-
-          for file in $files; do
-            # Check against AI regex patterns
-            for regex in "${AI_REGEXES[@]}"; do
-              if [[ $file =~ $regex ]]; then
-                echo "Matched: $file with regex $regex"
-                AI_CHANGED="true"
-                break
-              fi
-            done
-          
-            # Check against UI regex patterns
-            for regex in "${UI_REGEXES[@]}"; do
-              if [[ $file =~ $regex ]]; then
-                echo "Matched: $file with regex $regex"
-                UI_CHANGED="true"
-                break
-              fi
-            done
-          
-            # Check against SIM regex patterns
-            for regex in "${SIM_REGEXES[@]}"; do
-              if [[ $file =~ $regex ]]; then
-                echo "Matched: $file with regex $regex"
-                SIM_CHANGED="true"
-                break
-              fi
-            done
-          done
-          echo "AI_CHANGED=$AI_CHANGED" >> $GITHUB_ENV
-          echo "UI_CHANGED=$UI_CHANGED" >> $GITHUB_ENV
-          echo "SIM_CHANGED=$SIM_CHANGED" >> $GITHUB_ENV
+          python check_directory_changes.py "$BASE_BRANCH" ${{ github.sha }} > changes.txt
+          cat changes.txt
+          if grep -q "AI_CHANGED=true" changes.txt; then echo "AI_CHANGED=true" >> $GITHUB_ENV; fi
+          if grep -q "UI_CHANGED=true" changes.txt; then echo "UI_CHANGED=true" >> $GITHUB_ENV; fi
+          if grep -q "SIM_CHANGED=true" changes.txt; then echo "SIM_CHANGED=true" >> $GITHUB_ENV; fi
 
   run-ai:
     needs: check_changes
