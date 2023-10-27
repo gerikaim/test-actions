@@ -4,6 +4,9 @@ import sys
 import subprocess
 import re
 
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
 def get_changed_files(base_sha, current_sha):
     cmd = ['git', 'diff', '--name-only', base_sha, current_sha]
     try:
@@ -21,12 +24,13 @@ def check_changes_for_patterns(files, patterns):
                 return True
     return False
 
-def main(base_sha, current_sha):
+@hydra.main(version_base=None)
+def main(cfg : DictConfig) -> None:
     AI_PATTERNS = [r"^ai/.*", r"^shared/.*"]
     UI_PATTERNS = [r"^ui/.*", r"^shared/.*"]
     SIM_PATTERNS = [r"^sim/.*", r"^shared/.*"]
 
-    files = get_changed_files(base_sha, current_sha)
+    files = get_changed_files(cfg.base_sha, cfg.current_sha)
 
     print("Changed files:")
     for file in files:
@@ -42,8 +46,4 @@ def main(base_sha, current_sha):
     print(f"SIM_CHANGED={SIM_CHANGED}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: check_directory_changes.py BASE_SHA CURRENT_SHA")
-        sys.exit(1)
-
-    main(sys.argv[1], sys.argv[2])
+    main()
