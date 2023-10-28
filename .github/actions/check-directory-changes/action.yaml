@@ -28,7 +28,7 @@
           git fetch origin $base_sha
           files=$(git diff --name-only $base_sha ${{ github.sha }})
           
-          echo "Changed files:"
+          echo -e "Changed files:\n"
           echo -e "$files\n"
 
           is_changed='false'
@@ -36,12 +36,12 @@
           for file in $files; do
             for regex in "${REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
-                echo "Found match"
+                echo -e "Found match\n"
                 is_changed='true'
               fi
             done
           done
 
           echo "is_changed=$is_changed" >> $GITHUB_OUTPUT
-          echo $is_changed
+          echo "is_changed=$is_changed"
           exit 0
