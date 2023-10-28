@@ -13,6 +13,7 @@ jobs:
   check-ai:
     runs-on: [ubuntu-latest]
     steps:
+      - uses: actions/checkout@v4
       - name: Check Directory Changes
         uses: ./.github/actions/check-directory-changes
 
