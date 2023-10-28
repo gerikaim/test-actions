@@ -1,9 +1,6 @@
   name: 'Project Regexes'
   description: 'Creates a github output based on file changes for other jobs to conditionally check'
   inputs:
-    project:
-      description: 'Abstract project name'
-      required: true
     regexes:
       description: 'Regexes to match project to file paths'
       required: true
@@ -19,6 +16,8 @@
         shell: bash
         run: |
           REGEXES=('${{ inputs.regexes }}')
+
+          echo $REGEXES
                    
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             base_sha=${{ github.event.pull_request.base.sha }}
