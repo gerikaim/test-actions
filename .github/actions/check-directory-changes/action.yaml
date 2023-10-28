@@ -1,12 +1,12 @@
-  name: 'Project Regexes'
-  description: 'Creates a github output based on file changes for other jobs to conditionally check'
+  name: 'Regex Changes'
+  description: 'Check if provided regexes match any files changes in the PR'
   inputs:
     regexes:
-      description: 'Regexes to match project to file paths'
+      description: 'Regexes to match to changed files'
       required: true
   outputs:
     is_changed:
-      description: 'boolean value describing if regexes match files changed in PR'
+      description: 'Do any regexes match files changed in PR'
       value: ${{ steps.check-changes.outputs.is_changed }}
 
   runs:
@@ -42,5 +42,5 @@
             done
           done
 
-          echo "::set-output name=is_changed::$is_changed"
+          echo "is_changed=$is_changed" >> GITHUB_OUTPUT
           exit 0
