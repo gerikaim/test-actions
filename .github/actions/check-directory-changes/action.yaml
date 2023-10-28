@@ -20,6 +20,7 @@
           read -ra REGEXES <<< "${{ inputs.regexes }}"
 
           # Validate that each element in REGEXES is a valid regex
+
           for regex in "${REGEXES[@]}"; do
             if ! [[ "test" =~ $regex ]]; then
               if [[ $? -ne 0 ]]; then
@@ -28,18 +29,23 @@
               fi
             fi
           done
+
+          # Determine changed files
+
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             base_sha=${{ github.event.pull_request.base.sha }}
           else
             base_sha='main'
           fi
           
-          git fetch origin $base_sha
+          git fetch --depth=1 origin $base_sha
           files=$(git diff --name-only $base_sha ${{ github.sha }})
           
           echo "Changed files:"
           echo "$files"
 
+          # Pattern match
+                    
           is_changed='false'
           
           for file in $files; do
