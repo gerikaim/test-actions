@@ -20,6 +20,14 @@ jobs:
         id: check-ai
         with:
           regexes: "^ai/.* ^shared/.* ^.github/.*"
+      - uses: ./.github/actions/check-directory-changes
+        id: check-ui
+        with:
+          regexes: "^ui/.* ^shared/.* ^.github/.*"
+      - uses: ./.github/actions/check-directory-changes
+        id: check-sim
+        with:
+          regexes: "^sim/.* ^shared/.* ^.github/.*"
 
   run-ai:
     needs: check-changes
@@ -27,15 +35,19 @@ jobs:
     runs-on: [ubuntu-latest]
     steps:
         - run: |
-            echo "${{ needs.check-changes.outputs.ai }}"
+            echo "Running AI"
 
   run-ui:
+    needs: check-changes
+    if: needs.check-changes.outputs.ui == 'true' || github.event_name == 'schedule'
     runs-on: [ubuntu-latest]
     steps:
       - run: |
           echo "Running UI"
 
   run-sim:
+    needs: check-changes
+    if: needs.check-changes.outputs.sim == 'true' || github.event_name == 'schedule'
     runs-on: [ubuntu-latest]
     steps:
       - run: |
