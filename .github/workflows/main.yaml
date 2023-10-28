@@ -21,17 +21,17 @@ jobs:
     if: needs.check-ai.outputs.changed == 'true' || github.event_name == 'schedule'
     runs-on: [ubuntu-latest]
     steps:
-        run: |
-          echo "Running AI"
+        - run: |
+            echo "Running AI"
 
   run-ui:
     runs-on: [ubuntu-latest]
     steps:
-      run: |
-        echo "Running UI"
+      - run: |
+          echo "Running UI"
 
   run-sim:
     runs-on: [ubuntu-latest]
     steps:
-      run: |
-        echo "Running Sim"
+      - run: |
+          echo "Running Sim"
