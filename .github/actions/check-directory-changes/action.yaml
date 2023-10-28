@@ -15,8 +15,7 @@
       - name: Match regex and create env variable
         shell: bash
         run: |
-          REGEXES=('${{ inputs.regexes }}')
-
+          read -ra REGEXES <<< ${{ inputs.regexes }}
           echo $REGEXES
                    
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
