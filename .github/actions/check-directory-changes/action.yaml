@@ -28,15 +28,15 @@
           git fetch origin $base_sha
           files=$(git diff --name-only $base_sha ${{ github.sha }})
           
-          echo -e "Changed files:\n"
-          echo -e "$files\n"
+          echo "Changed files:"
+          echo "$files"
 
           is_changed='false'
           
           for file in $files; do
             for regex in "${REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
-                echo -e "Found match\n"
+                echo "Found match"
                 is_changed='true'
               fi
             done
