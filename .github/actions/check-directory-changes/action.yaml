@@ -42,6 +42,5 @@
             done
           done
 
-          echo "is_changed=$is_changed" >> $GITHUB_OUTPUT
-          echo "is_changed=$is_changed"
+          echo "::set-output name=is_changed::$is_changed"
           exit 0
