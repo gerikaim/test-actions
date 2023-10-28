@@ -42,5 +42,5 @@
             done
           done
 
-          echo "is_changed=$is_changed" >> GITHUB_OUTPUT
+          echo "is_changed=$is_changed" >> "$GITHUB_OUTPUT"
           exit 0
