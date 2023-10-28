@@ -1,113 +1,58 @@
-name: Conditional Directory Check
+name: CI
 
 on:
   pull_request:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check_changes:
-    runs-on: ubuntu-latest
-
+  check-changes:
+    runs-on: [ubuntu-latest]
     outputs:
-      ai-changed: ${{ env.AI_CHANGED }}
-      ui-changed: ${{ env.UI_CHANGED }}
-      sim-changed: ${{ env.SIM_CHANGED }}
-
+      ai: ${{ steps.check-ai.outputs.is_changed }}
+      ui: ${{ steps.check-ui.outputs.is_changed }}
+      sim: ${{ steps.check-sim.outputs.is_changed }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/check-directory-changes
+        id: check-ai
         with:
-          fetch-depth: 0
-
-      - name: Check directory changes and match regex
-        id: check_changes_step
-        run: |
-          # Define regex patterns for each type (Modify these patterns as per your needs)
-          AI_REGEXES=("^ai/.*" \
-                      "^shared/.*")
-          UI_REGEXES=("^ui/.*" \
-                      "^shared/.*")
-          SIM_REGEXES=("^sim/.*"\
-                       "^shared/.*")
-
-          AI_CHANGED="false"
-          UI_CHANGED="false"
-          SIM_CHANGED="false"
-
-          files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
-
-          # Print changed files
-          echo "Changed files:"
-          echo "$files"
-          echo "-------------------------"
-
-          for file in $files; do
-            # Check against AI regex patterns
-            for regex in "${AI_REGEXES[@]}"; do
-              if [[ $file =~ $regex ]]; then
-                echo "Matched: $file with regex $regex"
-                AI_CHANGED="true"
-                break
-              fi
-            done
-          
-            # Check against UI regex patterns
-            for regex in "${UI_REGEXES[@]}"; do
-              if [[ $file =~ $regex ]]; then
-                echo "Matched: $file with regex $regex"
-                UI_CHANGED="true"
-                break
-              fi
-            done
-          
-            # Check against SIM regex patterns
-            for regex in "${SIM_REGEXES[@]}"; do
-              if [[ $file =~ $regex ]]; then
-                echo "Matched: $file with regex $regex"
-                SIM_CHANGED="true"
-                break
-              fi
-            done
-          done
-          echo "AI_CHANGED=$AI_CHANGED" >> $GITHUB_ENV
-          echo "UI_CHANGED=$UI_CHANGED" >> $GITHUB_ENV
-          echo "SIM_CHANGED=$SIM_CHANGED" >> $GITHUB_ENV
+          regexes: "^ai/.* \
+                    ^shared/.* \
+                    ^.github/.*"
+      - uses: ./.github/actions/check-directory-changes
+        id: check-ui
+        with:
+          regexes: "^ui/.* ^shared/.* ^.github/.*"
+      - uses: ./.github/actions/check-directory-changes
+        id: check-sim
+        with:
+          regexes: "^sim/.* ^shared/.* ^.github/.*"
 
   run-ai:
-    needs: check_changes
-    runs-on: ubuntu-latest
-    if: needs.check_changes.outputs.ai-changed == 'true'
+    needs: check-changes
+    if: needs.check-changes.outputs.ai == 'true' || github.event_name == 'schedule'
+    runs-on: [ubuntu-latest]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Execute steps for AI
-        run: echo "AI related patterns matched."
-
-      - name: Run AI program
-        run: |
-          python ai/main.py
+        - run: |
+            echo "Running AI"
 
   run-ui:
-    needs: check_changes
-    runs-on: ubuntu-latest
-    if: needs.check_changes.outputs.ui-changed == 'true'
+    needs: check-changes
+    if: needs.check-changes.outputs.ui == 'true' || github.event_name == 'schedule'
+    runs-on: [ubuntu-latest]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Execute steps for UI
-        run: echo "UI related patterns matched."
-
-      - name: Run UI Program
-        run: |
-          python ui/main.py
+      - run: |
+          echo "Running UI"
 
   run-sim:
-    needs: check_changes
-    runs-on: ubuntu-latest
-    if: needs.check_changes.outputs.sim-changed == 'true'
+    needs: check-changes
+    if: needs.check-changes.outputs.sim == 'true' || github.event_name == 'schedule'
+    runs-on: [ubuntu-latest]
     steps:
-      - name: Execute steps for sim
-        run: echo "SIM related patterns matched."
+      - run: |
+          echo "Running Sim"

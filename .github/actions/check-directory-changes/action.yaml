@@ -1,0 +1,60 @@
+  name: 'Regex Changes'
+  description: 'Check if provided regexes match any files changes in the PR'
+  inputs:
+    regexes:
+      description: 'Regexes to match to changed files'
+      required: true
+  outputs:
+    is_changed:
+      description: 'Do any regexes match files changed in PR'
+      value: ${{ steps.check-changes.outputs.is_changed }}
+
+  runs:
+    using: "composite"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match regex and create env variable
+        shell: bash
+        id: check-changes
+        run: |
+          read -ra REGEXES <<< "${{ inputs.regexes }}"
+
+          # Validate that each element in REGEXES is a valid regex
+
+          for regex in "${REGEXES[@]}"; do
+            if ! [[ "test" =~ $regex ]]; then
+              if [[ $? -ne 0 ]]; then
+                echo "Error: Invalid regex - $regex"
+                exit 1
+              fi
+            fi
+          done
+
+          # Determine changed files
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_sha=${{ github.event.pull_request.base.sha }}
+          else
+            base_sha='main'
+          fi
+          
+          git fetch --depth=1 origin $base_sha
+          files=$(git diff --name-only $base_sha ${{ github.sha }})
+          
+          echo "Changed files:"
+          echo "$files"
+
+          # Pattern match
+                    
+          is_changed='false'
+          
+          for file in $files; do
+            for regex in "${REGEXES[@]}"; do
+              if [[ $file =~ $regex ]]; then
+                is_changed='true'
+              fi
+            done
+          done
+
+          echo "is_changed=$is_changed" >> "$GITHUB_OUTPUT"
+          exit 0
