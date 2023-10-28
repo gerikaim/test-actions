@@ -10,8 +10,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-stuff:
+  check-changes:
     runs-on: [ubuntu-latest]
+    outputs:
+      ai: ${{ steps.check-ai.outputs.is_changed }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/check-directory-changes
@@ -20,12 +22,12 @@ jobs:
           regexes: "^ai/.* ^shared/.* ^.github/.*"
 
   run-ai:
-    needs: check-ai
-    # if: needs.check-ai.outputs.is_changed == 'true' || github.event_name == 'schedule'
+    needs: check-changes
+    if: needs.check-changes.outputs.ai == 'true' || github.event_name == 'schedule'
     runs-on: [ubuntu-latest]
     steps:
         - run: |
-            echo "${{ needs.check-ai.outputs.is_changed }}"
+            echo "${{ needs.check-changes.outputs.ai }}"
 
   run-ui:
     runs-on: [ubuntu-latest]
