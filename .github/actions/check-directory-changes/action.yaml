@@ -20,8 +20,6 @@
         run: |
           REGEXES=('${{ inputs.regexes }}')
                    
-          is_changed="false"
-
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             base_sha=${{ github.event.pull_request.base.sha }}
           else
@@ -37,11 +35,13 @@
           for file in $files; do
             for regex in "${REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
-                echo "is_changed=$is_changed" >> $GITHUB_ENV
+                is_changed='true'
+                echo "is_changed=true" >> $GITHUB_ENV
                 exit 0
               fi
             done
           done
 
+          echo "is_changed=false" >> $GITHUB_ENV
           exit 0
 
