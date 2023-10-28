@@ -23,12 +23,14 @@
           is_changed="false"
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+            base_sha=${{ github.event.pull_request.base.sha }}
           else
-            git fetch origin main:main
-            files=$(git diff --name-only main ${{ github.sha }})
+            base_sha='main'
           fi
-
+          
+          git fetch origin $base_sha
+          files=$(git diff --name-only $base_sha ${{ github.sha }})
+          
           echo "Changed files:"
           echo -e "$files\n"
 
