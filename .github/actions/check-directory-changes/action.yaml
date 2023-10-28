@@ -1,0 +1,44 @@
+  name: 'Project Regexes'
+  description: 'Creates a github output based on file changes for other jobs to conditionally check'
+  inputs:
+    project:
+      description: 'Abstract project name'
+      required: true
+    regexes:
+      description: 'Regexes to match project to file paths'
+      required: true
+  outputs:
+    is_changed:
+      description: 'boolean value describing if regexes match files changed in PR'
+
+  runs:
+    using: "composite"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Match regex and create env variable
+        run: |
+          REGEXES=('${{ inputs.regexes }}')
+                   
+          is_changed="false"
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          else
+            git fetch origin main:main
+            files=$(git diff --name-only main ${{ github.sha }})
+          fi
+
+          echo "Changed files:"
+          echo -e "$files\n"
+
+          for file in $files; do
+            for regex in "${REGEXES[@]}"; do
+              if [[ $file =~ $regex ]]; then
+                echo "is_changed=$is_changed" >> $GITHUB_ENV
+                exit 0
+              fi
+            done
+          done
+
+          exit 0
+
