@@ -33,12 +33,12 @@
             for regex in "${REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
                 echo "Found match"
-                echo "is_changed=true" >> $GITHUB_ENV
+                echo "is_changed=true" >> $GITHUB_OUTPUT
                 exit 0
               fi
             done
           done
 
-          echo "is_changed=false" >> $GITHUB_ENV
+          echo "is_changed=false" >> $GITHUB_OUTPUT
           exit 0
 
