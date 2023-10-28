@@ -18,7 +18,16 @@
         id: check-changes
         run: |
           read -ra REGEXES <<< "${{ inputs.regexes }}"
-                   
+
+          # Validate that each element in REGEXES is a valid regex
+          for regex in "${REGEXES[@]}"; do
+            if ! [[ "test" =~ $regex ]]; then
+              if [[ $? -ne 0 ]]; then
+                echo "Error: Invalid regex - $regex"
+                exit 1
+              fi
+            fi
+          done
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             base_sha=${{ github.event.pull_request.base.sha }}
           else
@@ -36,7 +45,6 @@
           for file in $files; do
             for regex in "${REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
-                echo "Found match"
                 is_changed='true'
               fi
             done
