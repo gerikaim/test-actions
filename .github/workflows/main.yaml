@@ -20,7 +20,7 @@ jobs:
 
   run-ai:
     needs: check-ai
-    if: needs.check-ai.outputs.changed || github.event_name == 'schedule'
+    if: needs.check-ai.outputs.is_changed || github.event_name == 'schedule'
     runs-on: [ubuntu-latest]
     steps:
         - run: |
