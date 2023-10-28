@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/check-directory-changes
         with:
-          regexes: "^ai/.* ^shared/.*"
+          regexes: "^ai/.* ^shared/.* ^.github/.*"
 
   run-ai:
     needs: check-ai

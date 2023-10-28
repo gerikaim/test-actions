@@ -16,7 +16,6 @@
         shell: bash
         run: |
           read -ra REGEXES <<< "${{ inputs.regexes }}"
-          echo $REGEXES
                    
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             base_sha=${{ github.event.pull_request.base.sha }}
