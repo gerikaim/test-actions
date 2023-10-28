@@ -10,17 +10,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-ai:
+  check-stuff:
     runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/check-directory-changes
+        id: check-ai
         with:
           regexes: "^ai/.* ^shared/.* ^.github/.*"
 
   run-ai:
-    needs: check-ai
-    if: needs.check-ai.outputs.is_changed == 'true' || github.event_name == 'schedule'
+    needs: check-stuff
+    if: steps.check-ai.outputs.is_changed == 'true' || github.event_name == 'schedule'
     runs-on: [ubuntu-latest]
     steps:
         - run: |
