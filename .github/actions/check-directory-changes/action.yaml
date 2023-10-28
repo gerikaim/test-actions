@@ -29,16 +29,17 @@
           echo "Changed files:"
           echo -e "$files\n"
 
+          is_changed='false'
+          
           for file in $files; do
             for regex in "${REGEXES[@]}"; do
               if [[ $file =~ $regex ]]; then
                 echo "Found match"
-                echo "is_changed=true" >> $GITHUB_OUTPUT
-                exit 0
+                is_changed='true'
               fi
             done
           done
 
-          echo "is_changed=false" >> $GITHUB_OUTPUT
+          echo "is_changed=$is_changed" >> $GITHUB_OUTPUT
           exit 0
 
