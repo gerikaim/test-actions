@@ -21,7 +21,9 @@ jobs:
       - uses: ./.github/actions/check-directory-changes
         id: check-ai
         with:
-          regexes: "^ai/.* ^shared/.* ^.github/.*"
+          regexes: "^ai/.* \
+                    ^shared/.* \
+                    ^.github/.*"
       - uses: ./.github/actions/check-directory-changes
         id: check-ui
         with:
